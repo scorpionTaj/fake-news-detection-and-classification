@@ -111,9 +111,6 @@ fake-news-detection-and-classification/
 ├── 📖 README.md
 │       └── Documentation principale (ce fichier)
 │
-├── 📖 GUIDE_NOTEBOOK_FR.md
-│       └── Guide pédagogique détaillé du notebook (en français)
-│
 └── 🤖 mon_modele_fake_news/
         ├── config.json              # Configuration architecture RoBERTa
         ├── model.safetensors        # Poids du modèle (format sécurisé)
@@ -181,8 +178,6 @@ Ouvrez le notebook dans Jupyter ou Google Colab :
 ```bash
 jupyter notebook fake-news-detection-and-classification-using-llm.ipynb
 ```
-
-> 📖 Consultez [GUIDE_NOTEBOOK_FR.md](GUIDE_NOTEBOOK_FR.md) pour une explication détaillée de chaque cellule.
 
 ---
 
