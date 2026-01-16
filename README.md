@@ -36,7 +36,7 @@ Ce projet implémente un système de détection de fake news basé sur l'apprent
 | ------------------- | ------------------------------------------------------------------------------- |
 | 🗃️ **Données**      | Datasets **GossipCop** (célébrités) & **Politifact** (politique) de FakeNewsNet |
 | 🧠 **Modèle**       | Fine-tuning de `roberta-base` (125M paramètres) pour classification binaire     |
-| ⚖️ **Équilibrage**  | `WeightedRandomSampler` pour gérer le déséquilibre des classes                  |
+| ⚖️ **Équilibrage**  | **Focal Loss** + `WeightedRandomSampler` pour combattre le déséquilibre         |
 | 🚀 **Optimisation** | AdamW + Linear Warmup + Mixed Precision (FP16) + Early Stopping                 |
 | 🖥️ **Interface**    | Application web **Gradio** avec thème personnalisé                              |
 | 📚 **Pédagogie**    | Démos interactives : tokenisation, analyse d'erreurs, visualisations            |
@@ -100,7 +100,7 @@ L'application analyse un texte et retourne :
 fake-news-detection-and-classification/
 │
 ├── 📓 fake-news-detection-and-classification-using-llm.ipynb
-│       └── Notebook principal d'entraînement (8 sections détaillées)
+│       └── Notebook principal d'entraînement (9 sections détaillées)
 │
 ├── 🚀 app.py
 │       └── Application Gradio pour l'inférence en temps réel
@@ -206,8 +206,8 @@ jupyter notebook fake-news-detection-and-classification-using-llm.ipynb
 1. **Chargement** : Téléchargement des 4 CSV (Politifact + GossipCop × Real/Fake)
 2. **EDA** : Analyse exploratoire (distribution, doublons, valeurs manquantes)
 3. **Prétraitement** : Nettoyage, tokenisation BPE, padding/truncation
-4. **Équilibrage** : WeightedRandomSampler pour les classes déséquilibrées
-5. **Fine-tuning** : 5 époques, Mixed Precision, Early Stopping
+4. **Équilibrage** : **Focal Loss (γ=2)** + WeightedRandomSampler (double stratégie)
+5. **Fine-tuning** : Jusqu'à 100 époques, Mixed Precision, Early Stopping (patience=4)
 6. **Évaluation** : F1-Score, Matrice de confusion, Rapport de classification
 7. **Export** : Sauvegarde au format Hugging Face (.safetensors)
 
@@ -238,13 +238,28 @@ Les hyperparamètres sont définis dans la classe `ProjectConfig` du notebook :
 class ProjectConfig:
     SEED = 42              # Reproductibilité
     MAX_LEN = 128          # Longueur max des séquences
-    BATCH_SIZE = 64        # Taille des lots
-    EPOCHS = 5             # Nombre d'époques
-    LEARNING_RATE = 2e-5   # Taux d'apprentissage
+    BATCH_SIZE = 32        # Taille des lots (réduit pour stabilité)
+    EPOCHS = 100           # Nombre max d'époques (Early Stopping actif)
+    LEARNING_RATE = 1e-5   # Taux d'apprentissage (plus conservateur)
     WEIGHT_DECAY = 0.1     # Régularisation L2
-    PATIENCE = 3           # Early stopping
+    PATIENCE = 4           # Early stopping après 4 époques sans amélioration
     MODEL_NAME = 'roberta-base'
 ```
+
+### Focal Loss
+
+Le projet utilise la **Focal Loss** au lieu de la Cross-Entropy standard :
+
+```python
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=1, gamma=2):
+        # gamma=2 : Focus sur les exemples difficiles (classe minoritaire)
+```
+
+| Paramètre | Valeur | Effet                                                          |
+| --------- | ------ | -------------------------------------------------------------- |
+| `gamma`   | 2.0    | Réduit le poids des exemples faciles, focus sur les difficiles |
+| `alpha`   | 1.0    | Poids égal pour les deux classes                               |
 
 ---
 
@@ -268,7 +283,7 @@ class ProjectConfig:
 
 ## 👤 Auteur
 
-**scorpionTaj** — Master SDIA, Université [Votre Université]
+**scorpionTaj** — Master SDIA, Université Moulay Ismail
 
 ---
 
