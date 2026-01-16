@@ -284,6 +284,8 @@ class FocalLoss(nn.Module):
 ## 👤 Auteur
 
 **scorpionTaj** — Master SDIA, Université Moulay Ismail
+**ana3ss7z** — Master SDIA, Université Moulay Ismail
+**Nawfal Khallou** — Master SDIA, Université Moulay Ismail
 
 ---
 
