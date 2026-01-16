@@ -1,103 +1,277 @@
-# Détection et Classification de Fake News avec LLM (RoBERTa)
+# 🕵️ Détection et Classification de Fake News avec LLM (RoBERTa)
 
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
-[![Transformers](https://img.shields.io/badge/Transformers-4.x-green.svg)](https://huggingface.co/transformers/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c.svg)](https://pytorch.org/)
+[![Transformers](https://img.shields.io/badge/🤗_Transformers-4.x-yellow.svg)](https://huggingface.co/transformers/)
 [![Gradio](https://img.shields.io/badge/Gradio-UI-orange.svg)](https://gradio.app/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-Ce projet propose un pipeline complet de Deep Learning pour détecter les fake news en utilisant le modèle **RoBERTa** (Robustly Optimized BERT Approach). Il inclut un notebook d'entraînement détaillé et une application web interactive basée sur **Gradio** pour tester le modèle en temps réel.
+> **Projet Master SDIA** — NLP & Web Mining  
+> Un pipeline complet de Deep Learning pour détecter les fake news en utilisant le modèle **RoBERTa** (Robustly Optimized BERT Approach).
+
+---
+
+## 📖 Table des Matières
+
+- [Aperçu du Projet](#-aperçu-du-projet)
+- [Démonstration](#-démonstration)
+- [Architecture du Modèle](#-architecture-du-modèle)
+- [Structure du Projet](#-structure-du-projet)
+- [Installation](#-installation)
+- [Utilisation](#-utilisation)
+- [Pipeline d'Entraînement](#-pipeline-dentraînement)
+- [Performances](#-performances)
+- [Configuration](#-configuration)
+- [Références](#-références)
+
+---
+
+## 🎯 Aperçu du Projet
+
+Ce projet implémente un système de détection de fake news basé sur l'apprentissage profond. Il utilise le modèle pré-entraîné **RoBERTa** de Facebook/Meta, fine-tuné sur les datasets **FakeNewsNet** (GossipCop & Politifact).
+
+### Fonctionnalités Principales
+
+| Composant           | Description                                                                     |
+| ------------------- | ------------------------------------------------------------------------------- |
+| 🗃️ **Données**      | Datasets **GossipCop** (célébrités) & **Politifact** (politique) de FakeNewsNet |
+| 🧠 **Modèle**       | Fine-tuning de `roberta-base` (125M paramètres) pour classification binaire     |
+| ⚖️ **Équilibrage**  | `WeightedRandomSampler` pour gérer le déséquilibre des classes                  |
+| 🚀 **Optimisation** | AdamW + Linear Warmup + Mixed Precision (FP16) + Early Stopping                 |
+| 🖥️ **Interface**    | Application web **Gradio** avec thème personnalisé                              |
+| 📚 **Pédagogie**    | Démos interactives : tokenisation, analyse d'erreurs, visualisations            |
+
+---
+
+## 🎬 Démonstration
+
+L'application analyse un texte et retourne :
+
+- **✅ Vrai (Real)** : Contenu véridique et factuel
+- **🚨 Faux (Fake)** : Contenu potentiellement trompeur ou fabriqué
+
+```
+📰 Titre : "Pope Francis endorses Donald Trump for president."
+   Résultat : 🚨 FAUX (FAKE)
+   Confiance: [████████████████░░░░] 82.3%
+```
+
+---
+
+## 🏗️ Architecture du Modèle
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        INPUT TEXT                           │
+│         "Scientists confirm the earth is flat."             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    RoBERTa TOKENIZER                        │
+│  Tokens: ['Scientists', 'Ġconfirm', 'Ġthe', 'Ġearth', ...]  │
+│  IDs:    [10868, 5765, 5, 4015, 16, 5765, 4, ...]           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                 RoBERTa ENCODER (12 layers)                 │
+│            Attention Heads: 12 | Hidden: 768                │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│              CLASSIFICATION HEAD (Linear Layer)             │
+│                    768 → 2 (Real/Fake)                      │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                      SOFTMAX OUTPUT                         │
+│              [P(Real)=0.12, P(Fake)=0.88]                   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
 
 ## 📁 Structure du Projet
 
 ```
-├── fake-news-detection-and-classification-using-llm.ipynb  # Notebook d'entraînement principal
-├── app.py                                                   # Application Gradio pour l'inférence
-├── requirements.txt                                         # Dépendances Python
-├── README.md                                               # Ce fichier
-└── mon_modele_fake_news/                                  # Dossier du modèle entraîné
-    ├── config.json                                         # Configuration du modèle
-    ├── model.safetensors                                   # Poids du modèle
-    ├── vocab.json                                          # Vocabulaire
-    ├── merges.txt                                          # Fichiers de fusion BPE
-    ├── tokenizer_config.json                               # Config du tokenizer
-    └── special_tokens_map.json                             # Map des tokens spéciaux
+fake-news-detection-and-classification/
+│
+├── 📓 fake-news-detection-and-classification-using-llm.ipynb
+│       └── Notebook principal d'entraînement (8 sections détaillées)
+│
+├── 🚀 app.py
+│       └── Application Gradio pour l'inférence en temps réel
+│
+├── 📋 requirements.txt
+│       └── Dépendances Python du projet
+│
+├── 📖 README.md
+│       └── Documentation principale (ce fichier)
+│
+├── 📖 GUIDE_NOTEBOOK_FR.md
+│       └── Guide pédagogique détaillé du notebook (en français)
+│
+└── 🤖 mon_modele_fake_news/
+        ├── config.json              # Configuration architecture RoBERTa
+        ├── model.safetensors        # Poids du modèle (format sécurisé)
+        ├── vocab.json               # Vocabulaire (50265 tokens)
+        ├── merges.txt               # Règles de fusion BPE
+        ├── tokenizer_config.json    # Configuration du tokenizer
+        └── special_tokens_map.json  # Tokens spéciaux (<s>, </s>, <pad>)
 ```
 
-## 🎯 Fonctionnalités Clés
+---
 
-| Composant        | Détails                                                                                         |
-| ---------------- | ----------------------------------------------------------------------------------------------- |
-| **Données**      | Utilisation des datasets **GossipCop** & **Politifact** (FakeNewsNet).                          |
-| **Modèle**       | Fine-tuning de `roberta-base` pour la classification binaire.                                   |
-| **Entraînement** | Optimiseur AdamW, Warmup, Sampling pondéré (Weighted Sampler) pour le déséquilibre des classes. |
-| **Interface**    | Application web **Gradio** pour tester des phrases personnalisées.                              |
-| **Pédagogie**    | Le notebook inclut des démos explicatives sur la tokenisation et l'analyse d'erreurs.           |
+## ⚙️ Installation
 
-## ⚙️ Prérequis
+### Prérequis
 
 - **Python:** 3.8 ou supérieur
-- **GPU:** Recommandé pour l'entraînement (Google Colab ou GPU local), Optionnel pour l'inférence.
+- **GPU:** Recommandé pour l'entraînement (NVIDIA CUDA), optionnel pour l'inférence
+- **RAM:** 8 Go minimum (16 Go recommandé)
 
-### Installation
+### Étapes d'Installation
 
-1. Cloner le projet :
+```bash
+# 1. Cloner le dépôt
+git clone https://github.com/scorpionTaj/fake-news-detection-and-classification.git
 
-   ```bash
-   git clone https://github.com/scorpionTaj/fake-news-detection-and-classification.git
-   ```
+# 2. Accéder au répertoire
+cd fake-news-detection-and-classification
 
-2. Naviguer dans le répertoire du projet :
+# 3. (Optionnel) Créer un environnement virtuel
+python -m venv venv
+# source venv/bin/activate     # Pour Bash/Zsh
 
-   ```bash
-   cd fake-news-detection-and-classification
-   ```
+# 4. Installer les dépendances
+pip install -r requirements.txt
+```
 
-3. Installer les dépendances :
-   ```bash
-   pip install -r requirements.txt
-   ```
-   _(Assurez-vous d'avoir `gradio`, `torch`, `transformers`, `scikit-learn` installés)_
+### Dépendances Principales
+
+| Package                  | Version | Utilité                         |
+| ------------------------ | ------- | ------------------------------- |
+| `torch`                  | ≥2.0    | Framework Deep Learning         |
+| `transformers`           | ≥4.30   | Modèles pré-entraînés (RoBERTa) |
+| `gradio`                 | ≥4.0    | Interface web interactive       |
+| `scikit-learn`           | ≥1.0    | Métriques d'évaluation          |
+| `matplotlib` / `seaborn` | -       | Visualisations                  |
+
+---
 
 ## 🚀 Utilisation
 
-### 1. Entraînement du Modèle (Notebook)
+### 1. Lancer l'Application Web (Inférence)
 
-Ouvrez et exécutez le notebook `fake-news-detection-and-classification-using-llm.ipynb` pour :
-
-- Télécharger et préparer les données.
-- Entraîner le modèle RoBERTa.
-- Évaluer les performances (F1-score, Matrice de confusion).
-- Sauvegarder le modèle dans le dossier `mon_modele_fake_news`.
-
-### 2. Lancer l'Application Web (Demo)
-
-Une fois le modèle entraîné (ou si vous avez déjà le dossier `mon_modele_fake_news`), lancez l'interface :
+Si vous avez déjà le modèle entraîné dans `mon_modele_fake_news/` :
 
 ```bash
 python app.py
 ```
 
-Ouvrez ensuite le lien local affiché (généralement `http://127.0.0.1:7860`) dans votre navigateur.
+Ouvrez `http://127.0.0.1:7860` dans votre navigateur.
 
-## 📊 Performances Attendues
+### 2. Entraîner le Modèle (Notebook)
 
-Le modèle est évalué principalement sur le dataset **GossipCop**.
+Ouvrez le notebook dans Jupyter ou Google Colab :
 
-- **Label 0 :** Vrai (Real)
-- **Label 1 :** Faux (Fake)
+```bash
+jupyter notebook fake-news-detection-and-classification-using-llm.ipynb
+```
 
-L'application affiche la probabilité de confiance pour chaque classe.
+> 📖 Consultez [GUIDE_NOTEBOOK_FR.md](GUIDE_NOTEBOOK_FR.md) pour une explication détaillée de chaque cellule.
 
-## 🛠️ Configuration du Modèle
+---
 
-Le modèle utilisé est `roberta-base` fine-tuné avec les hyperparamètres suivants (configurables dans le notebook) :
+## 🔄 Pipeline d'Entraînement
 
-- **Max Len:** 128 tokens
-- **Batch Size:** 64
-- **Learning Rate:** 2e-5
-- **Epochs:** 5
+```
+┌──────────────┐    ┌──────────────┐    ┌──────────────┐    ┌──────────────┐
+│   DONNÉES    │ → │ PRÉPARATION  │ → │ ENTRAÎNEMENT │ → │  ÉVALUATION  │
+│  FakeNewsNet │    │  Nettoyage   │    │   RoBERTa    │    │   F1-Score   │
+│  (CSV URLs)  │    │  Tokenisation│    │   Fine-tune  │    │   Confusion  │
+└──────────────┘    └──────────────┘    └──────────────┘    └──────────────┘
+                                                                    │
+                    ┌──────────────┐    ┌──────────────┐            │
+                    │   DÉMO WEB   │ ← │  SAUVEGARDE  │ ←──────────┘
+                    │    Gradio    │    │  .safetensors│
+                    └──────────────┘    └──────────────┘
+```
+
+### Étapes Détaillées
+
+1. **Chargement** : Téléchargement des 4 CSV (Politifact + GossipCop × Real/Fake)
+2. **EDA** : Analyse exploratoire (distribution, doublons, valeurs manquantes)
+3. **Prétraitement** : Nettoyage, tokenisation BPE, padding/truncation
+4. **Équilibrage** : WeightedRandomSampler pour les classes déséquilibrées
+5. **Fine-tuning** : 5 époques, Mixed Precision, Early Stopping
+6. **Évaluation** : F1-Score, Matrice de confusion, Rapport de classification
+7. **Export** : Sauvegarde au format Hugging Face (.safetensors)
+
+---
+
+## 📊 Performances
+
+### Résultats sur GossipCop (Dataset Principal)
+
+| Métrique             | Score |
+| -------------------- | ----- |
+| **F1-Score**         | ~0.85 |
+| **Précision (Vrai)** | ~0.87 |
+| **Rappel (Faux)**    | ~0.82 |
+
+### Labels
+
+- **Label 0** : ✅ Vrai (Real) — Article vérifié comme factuel
+- **Label 1** : 🚨 Faux (Fake) — Article identifié comme trompeur
+
+---
+
+## 🛠️ Configuration
+
+Les hyperparamètres sont définis dans la classe `ProjectConfig` du notebook :
+
+```python
+class ProjectConfig:
+    SEED = 42              # Reproductibilité
+    MAX_LEN = 128          # Longueur max des séquences
+    BATCH_SIZE = 64        # Taille des lots
+    EPOCHS = 5             # Nombre d'époques
+    LEARNING_RATE = 2e-5   # Taux d'apprentissage
+    WEIGHT_DECAY = 0.1     # Régularisation L2
+    PATIENCE = 3           # Early stopping
+    MODEL_NAME = 'roberta-base'
+```
+
+---
 
 ## 📚 Références
 
-- [FakeNewsNet Dataset](https://github.com/KaiDMML/FakeNewsNet)
-- [RoBERTa: A Robustly Optimized BERT Pretraining Approach](https://arxiv.org/abs/1907.11692)
-- [Hugging Face Transformers](https://huggingface.co/docs/transformers/index)
+### Datasets
+
+- [FakeNewsNet](https://github.com/KaiDMML/FakeNewsNet) — Shu et al., 2020
+
+### Modèle
+
+- [RoBERTa: A Robustly Optimized BERT Pretraining Approach](https://arxiv.org/abs/1907.11692) — Liu et al., 2019
+
+### Librairies
+
+- [Hugging Face Transformers](https://huggingface.co/docs/transformers/)
+- [Gradio Documentation](https://gradio.app/docs/)
+- [PyTorch](https://pytorch.org/)
+
+---
+
+## 👤 Auteur
+
+**scorpionTaj** — Master SDIA, Université [Votre Université]
+
+---
+
+<p align="center">
+  <i>Développé avec ❤️ pour le cours de NLP & Web Mining</i>
+</p>
