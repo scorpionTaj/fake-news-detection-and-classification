@@ -24,13 +24,13 @@ Ce projet propose un pipeline complet de Deep Learning pour détecter les fake n
 
 ## 🎯 Fonctionnalités Clés
 
-| Composant | Détails |
-|Chart | Description |
-| **Données** | Utilisation des datasets **GossipCop** & **Politifact** (FakeNewsNet). |
-| **Modèle** | Fine-tuning de `roberta-base` pour la classification binaire. |
+| Composant        | Détails                                                                                         |
+| ---------------- | ----------------------------------------------------------------------------------------------- |
+| **Données**      | Utilisation des datasets **GossipCop** & **Politifact** (FakeNewsNet).                          |
+| **Modèle**       | Fine-tuning de `roberta-base` pour la classification binaire.                                   |
 | **Entraînement** | Optimiseur AdamW, Warmup, Sampling pondéré (Weighted Sampler) pour le déséquilibre des classes. |
-| **Interface** | Application web **Gradio** pour tester des phrases personnalisées. |
-| **Pédagogie** | Le notebook inclut des démos explicatives sur la tokenisation et l'analyse d'erreurs. |
+| **Interface**    | Application web **Gradio** pour tester des phrases personnalisées.                              |
+| **Pédagogie**    | Le notebook inclut des démos explicatives sur la tokenisation et l'analyse d'erreurs.           |
 
 ## ⚙️ Prérequis
 
@@ -42,10 +42,16 @@ Ce projet propose un pipeline complet de Deep Learning pour détecter les fake n
 1. Cloner le projet :
 
    ```bash
-   cd "Votre/Chemin/Vers/Le/Projet"
+   git clone https://github.com/scorpionTaj/fake-news-detection-and-classification.git
    ```
 
-2. Installer les dépendances :
+2. Naviguer dans le répertoire du projet :
+
+   ```bash
+   cd fake-news-detection-and-classification
+   ```
+
+3. Installer les dépendances :
    ```bash
    pip install -r requirements.txt
    ```
