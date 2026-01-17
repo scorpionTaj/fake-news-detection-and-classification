@@ -1,4 +1,4 @@
-# 🕵️ Détection et Classification de Fake News avec LLM (RoBERTa)
+# 🕵️ Détection et Classification de Fake News avec LLM (RoBERTa) — V3 Optimisée
 
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c.svg)](https://pytorch.org/)
@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 > **Projet Master SDIA** — NLP & Web Mining  
-> Un pipeline complet de Deep Learning pour détecter les fake news en utilisant le modèle **RoBERTa** (Robustly Optimized BERT Approach).
+> Un pipeline **robuste** et **honnête** de Deep Learning pour détecter les fake news, utilisant **RoBERTa** avec stratégies avancées de régularisation, déduplication stricte et seuil dynamique.
 
 ---
 
@@ -26,20 +26,27 @@
 
 ---
 
-## 🎯 Aperçu du Projet
+## 🎯 Aperçu du Projet (V3 — Optimisée)
 
-Ce projet implémente un système de détection de fake news basé sur l'apprentissage profond. Il utilise le modèle pré-entraîné **RoBERTa** de Facebook/Meta, fine-tuné sur les datasets **FakeNewsNet** (GossipCop & Politifact).
+Cette version corrige les biais majeurs présents dans la plupart des projets de détection de fake news grâce à trois innovations techniques :
+
+1. **🛡️ Déduplication Stricte** : Suppression rigoureuse des doublons AVANT le split Train/Val (évite la fuite de données/data leakage)
+2. **🧠 Seuil de Décision Dynamique** : Au lieu d'utiliser un seuil fixe (0.50), le modèle trouve le seuil optimal (ex: 0.45 ou 0.60) qui maximise le F1-Score par dataset
+3. **📉 Régularisation Avancée** : Dropout renforcé (0.2) + **Focal Loss** pour empêcher l'overfitting sur les datasets bruyants
+
+Le modèle utilise **RoBERTa** de Facebook/Meta, fine-tuné sur les datasets **FakeNewsNet** (GossipCop & Politifact) avec validation stricte.
 
 ### Fonctionnalités Principales
 
-| Composant           | Description                                                                     |
-| ------------------- | ------------------------------------------------------------------------------- |
-| 🗃️ **Données**      | Datasets **GossipCop** (célébrités) & **Politifact** (politique) de FakeNewsNet |
-| 🧠 **Modèle**       | Fine-tuning de `roberta-base` (125M paramètres) pour classification binaire     |
-| ⚖️ **Équilibrage**  | **Focal Loss** + `WeightedRandomSampler` pour combattre le déséquilibre         |
-| 🚀 **Optimisation** | AdamW + Linear Warmup + Mixed Precision (FP16) + Early Stopping                 |
-| 🖥️ **Interface**    | Application web **Gradio** avec thème personnalisé                              |
-| 📚 **Pédagogie**    | Démos interactives : tokenisation, analyse d'erreurs, visualisations            |
+| Composant           | V3 — Description                                                           |
+| ------------------- | -------------------------------------------------------------------------- |
+| 🗃️ **Données**      | **Déduplication stricte** des doublons (1397 supprimés dans GossipCop)     |
+| 🧠 **Modèle**       | Fine-tuning de `roberta-base` (125M) avec **Dropout=0.2** anti-overfitting |
+| 🔥 **Loss**         | **Focal Loss** ($\gamma=2$) + `WeightedRandomSampler` pour équilibrage     |
+| 🎯 **Décision**     | **Seuil Dynamique** : ~0.45 (PolitiFact), ~0.60 (GossipCop)                |
+| 🚀 **Optimisation** | AdamW + Linear Warmup + Mixed Precision (FP16) + Early Stopping agressif   |
+| 🖥️ **Interface**    | Application web **Gradio** avec thème personnalisé                         |
+| 📚 **Pédagogie**    | Démos interactives : tokenisation, analyse d'erreurs, visualisations       |
 
 ---
 
@@ -208,53 +215,75 @@ jupyter notebook fake-news-detection-and-classification-using-llm.ipynb
 
 ---
 
-## 📊 Performances
+## 📊 Performances V3 (Sans Fuite de Données)
 
-### Résultats sur GossipCop (Dataset Principal)
+Contrairement aux approches classiques qui gonflent les scores via des doublons, ces résultats sont **honnêtes** et validés sur des données uniques après déduplication stricte.
 
-| Métrique             | Score |
-| -------------------- | ----- |
-| **F1-Score**         | ~0.85 |
-| **Précision (Vrai)** | ~0.87 |
-| **Rappel (Faux)**    | ~0.82 |
+### 🏛️ PolitiFact (Politique)
+
+> Modèle très performant, capable de saisir les nuances politiques.
+
+| Métrique          | Résultat |
+| ----------------- | -------- |
+| **F1-Score**      | ~0.89    |
+| **Seuil Optimal** | **0.45** |
+| **Erreurs**       | ~10/148  |
+
+### 🌟 GossipCop (Célébrités)
+
+> Dataset difficile et bruyant (tabloïds), stabilisé par Dropout=0.2.
+
+| Métrique               | Résultat             |
+| ---------------------- | -------------------- |
+| **F1-Score**           | ~0.67                |
+| **Seuil Optimal**      | **0.60**             |
+| **Gain V3**            | Overfitting maîtrisé |
+| **Doublons supprimés** | 1397                 |
 
 ### Labels
 
 - **Label 0** : ✅ Vrai (Real) — Article vérifié comme factuel
 - **Label 1** : 🚨 Faux (Fake) — Article identifié comme trompeur
 
+> **Note** : Les scores V3 sont légèrement inférieurs à V2 (0.85 → 0.67 sur GossipCop) car la déduplication a supprimé les doublons qui gonflaient artificiellement les métriques. Ces scores V3 reflètent la **vraie** capacité du modèle.
+
 ---
 
-## 🛠️ Configuration
+## 🛠️ Configuration V3 (Robuste)
 
-Les hyperparamètres sont définis dans la classe `ProjectConfig` du notebook :
+Les hyperparamètres ont été ajustés pour la stabilité et l'honnêteté des évaluations :
 
 ```python
 class ProjectConfig:
     SEED = 42              # Reproductibilité
     MAX_LEN = 128          # Longueur max des séquences
-    BATCH_SIZE = 32        # Taille des lots (réduit pour stabilité)
-    EPOCHS = 100           # Nombre max d'époques (Early Stopping actif)
-    LEARNING_RATE = 1e-5   # Taux d'apprentissage (plus conservateur)
+    BATCH_SIZE = 32        # Petit batch pour meilleure généralisation
+    EPOCHS = 8             # Early Stopping agressif pour capturer le pic
+    LEARNING_RATE = 1e-5   # Taux très faible pour fine-tuning précis
     WEIGHT_DECAY = 0.1     # Régularisation L2
-    PATIENCE = 4           # Early stopping après 4 époques sans amélioration
+    DROPOUT_RATE = 0.2     # AUGMENTÉ (0.1 → 0.2) pour anti-overfitting
+    PATIENCE = 4           # Early stopping après 4 époques
     MODEL_NAME = 'roberta-base'
 ```
 
-### Focal Loss
+### Focal Loss + Dropout Renforcé
 
-Le projet utilise la **Focal Loss** au lieu de la Cross-Entropy standard :
+Le projet combine **Focal Loss** + **Dropout augmenté** pour combattre le surapprentissage (overfitting), particulièrement sur GossipCop (dataset bruyant).
 
-```python
-class FocalLoss(nn.Module):
-    def __init__(self, alpha=1, gamma=2):
-        # gamma=2 : Focus sur les exemples difficiles (classe minoritaire)
-```
+| Technique           | Paramètre        | Rôle                                                                          |
+| ------------------- | ---------------- | ----------------------------------------------------------------------------- |
+| **Focal Loss**      | gamma=2.0        | Réduit le poids des exemples faciles, focus sur les fakes subtils             |
+| **Dropout**         | 0.2 (20%)        | Force le modèle à apprendre les patterns robustes, pas les titres spécifiques |
+| **WeightedSampler** | Auto-équilibrage | Assure que chaque batch contient 50/50 Vrai/Faux                              |
 
-| Paramètre | Valeur | Effet                                                          |
-| --------- | ------ | -------------------------------------------------------------- |
-| `gamma`   | 2.0    | Réduit le poids des exemples faciles, focus sur les difficiles |
-| `alpha`   | 1.0    | Poids égal pour les deux classes                               |
+### Seuil Dynamique (Nouveauté V3)
+
+Au lieu d'utiliser le seuil classique de 0.50, le modèle calcule automatiquement le seuil optimal pour chaque dataset. Cela permet d'adapter la sensibilité du modèle selon la distribution des données.
+
+**Résultats** :
+
+- **PolitiFact** → Seuil **0.45** (être soupçonneux pour ne rien rater)
+- **GossipCop** → Seuil **0.60** (être strict pour filtrer le bruit)
 
 ---
 
